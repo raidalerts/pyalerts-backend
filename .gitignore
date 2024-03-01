@@ -1,0 +1,94 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDEs and editors
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Test coverage
+htmlcov/
+.coverage
+.coverage.*
+.cache
+
+# Translations
+*.mo
+*.pot
+
+# Documentation
+docs/_build/
+doc/_build/
+
+# Miscellaneous
+*.bak
+*.swp
+*.tmp
+*.log
+*.pid
+*.sql
+*.sqlite
+*.db
+*.csv
+*.xlsx
+*.xls
+*.pdf
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.svg
+*.ico
+*.woff
+*.woff2
+*.ttf
+*.eot
+*.zip
+*.rar
+*.gz
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.7z
+*.bz2
+*.xz
+*.pdf
+*.doc
+*.docx
+*.ppt
+*.pptx
+*.xls
+*.xlsx
+*.csv
+*.txt
+*.md
+*.html
+*.xml
+*.json
+*.yaml
+*.yml
+
+!requirements.txt
+
+# Env files
+.env
+
+# Settings files
+settings.yml
