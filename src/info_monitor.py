@@ -1,12 +1,12 @@
 import threading
 import time
-import logging
-from datetime import timedelta
+from datetime import timedelta, timezone, datetime
 from telegram import fetch_latest_messages
 from message_bus import message_bus
 from config import Settings
+import app_logger
 
-logger = logging.getLogger(__name__)
+logger = app_logger.get(__name__)
 
 
 class InfoMonitor:
@@ -38,7 +38,9 @@ class InfoMonitor:
             for channel_name in self.channel_names:
                 logger.debug(f'Fetching messages from {channel_name}')
                 channel_messages = fetch_latest_messages(channel_name, newer_than=self.channel_last_fetched[channel_name])
-                logger.debug(f'Fetched {len(channel_messages)} messages from {channel_name}')
+                self.channel_last_fetched[channel_name] = datetime.utcnow().replace(tzinfo=timezone.utc)
+                if len(channel_messages) > 0:
+                    logger.info(f'Fetched {len(channel_messages)} messages from {channel_name}')
                 messages.extend(channel_messages)
                 time.sleep(0.3)
 

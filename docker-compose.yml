@@ -1,0 +1,12 @@
+version: '3.3'
+services:
+  app:
+    build:
+      context: .
+    env_file:
+      - ./.env
+    volumes:
+      - ./src:/app/src
+      - ./settings.yml:/etc/pyalerts/settings.yml:ro
+      - ./account.json:/etc/pyalerts/account.json:ro
+    command: python3 src/main.py

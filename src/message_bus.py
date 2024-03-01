@@ -1,8 +1,8 @@
 import threading
 import queue
-import logging
+import app_logger
 
-logger = logging.getLogger(__name__)
+logger = app_logger.get(__name__)
 
 
 class MessageBus:

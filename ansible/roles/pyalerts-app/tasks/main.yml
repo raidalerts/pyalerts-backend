@@ -1,0 +1,47 @@
+- name: Create a projects dir
+  file:
+    path: /root/projects
+    state: directory
+    mode: '0755'
+- name: Clone the project from GitHub
+  git:
+    repo: 'https://github.com/raidalerts/pyalerts-backend.git'
+    dest: /root/projects/pyalerts
+    version: master
+- name: Create a config directory
+  file:
+    path: /etc/pyalerts
+    state: directory
+    mode: '0755'
+- name: Copy settings file to remote
+  copy:
+    src: settings.yml
+    dest: /etc/pyalerts/settings.yml
+- name: Copy Firebase config to remote
+  copy:
+    src: account.json
+    dest: /etc/pyalerts/account.json
+- name: Run app service
+  docker_compose:
+    project_name: pyalerts-app
+    recreate: always
+    build: yes
+    definition:
+      version: '3.3'
+      services:
+        app:
+          build:
+            context: /root/projects/pyalerts
+          environment:
+            OPENAI_API_KEY: "{{ openai_api_key }}"
+            GOOGLE_APPLICATION_CREDENTIALS: /etc/pyalerts/account.json
+          restart: unless-stopped
+          volumes:
+            - /etc/pyalerts/settings.yml:/etc/pyalerts/settings.yml:ro
+            - /etc/pyalerts/account.json:/etc/pyalerts/account.json:ro
+  register: output
+- debug:
+    var: output
+- name: Prune dangling docker images
+  docker_prune:
+    images: yes

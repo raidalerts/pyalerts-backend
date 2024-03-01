@@ -1,6 +1,5 @@
 import os
 import json
-import logging
 from dataclasses import dataclass
 from collections import deque
 from threading import Lock
@@ -10,8 +9,9 @@ from pytz import timezone
 from telegram import Message
 from message_bus import message_bus
 from config import Settings
+import app_logger
 
-logger = logging.getLogger(__name__)
+logger = app_logger.get(__name__)
 
 
 @dataclass
@@ -27,9 +27,9 @@ class AiAlert:
         return AiAlert(
             alert=data.get('alert'),
             attacker=data.get('attacker', "UNKNOWN"),
-            text=data.get('text', "<No text>"),
-            confidence=data.get('confidence', 0.0),
-            original_text=data.get('original_text', "<No original text>"),
+            text=data.get('trigger', "<No text>"),
+            confidence=data.get('risk', 0.0),
+            original_text=data.get('trigger', "<No original text>"),
         )
 
 
@@ -46,6 +46,7 @@ class AiWorker:
         message_bus.subscribe('new_messages', self.process_messages)
         message_bus.subscribe('alert', self.process_alert_event)
         message_bus.subscribe('clear', self.process_clear_event)
+        logger.info('AiWorker started')
 
     def process_alert_event(self, _):
         with self.state_lock:
@@ -64,26 +65,39 @@ class AiWorker:
             if not self.ai_enabled:
                 return
 
-        for message in messages:
-            self.history.append(message)
-
         system_messages = [
             {"role": "system", "content": self.system_prompt}
         ]
-        user_messages = [
-            {"role": "user", "content": f"{msg.date.astimezone(self.target_timezone).time()} {msg.author}: {msg.text}"} for msg in self.history
+
+        history_messages = [
+            {"role": "user", "content": f"> HISTORY {msg.date.astimezone(self.target_timezone).strftime('%H:%M:%S')} {msg.author}: {msg.text}"} for msg in self.history
         ]
-        debug_messages = "\n".join([msg['content'] for msg in user_messages])
-        logger.debug(f"Sending messages to AI: \n{debug_messages}")
+
+        new_messages = [
+            {"role": "user", "content": f"> NEW {msg.date.astimezone(self.target_timezone).strftime('%H:%M:%S')} {msg.author}: {msg.text}"} for msg in messages
+        ]
+
+        for message in messages:
+            self.history.append(message)
+
+        history_string = "\n".join([msg['content'] for msg in history_messages])
+        new_string = "\n".join([msg['content'] for msg in new_messages])
+        all_messages = "\n".join([history_string, new_string])
+        logger.debug(f"Sending messages to AI:\n\n{all_messages}\n")
         try:
             ai_response = self.chatgpt_api.chat.completions.create(
                 model="gpt-3.5-turbo",
-                messages=system_messages + user_messages,
-                temperature=0.1,
+                messages=system_messages + history_messages + new_messages,
+                temperature=0.01,
+                max_tokens=4096,
+                top_p=1,
+                frequency_penalty=0,
+                presence_penalty=0
             )
             response = json.loads(ai_response.choices[0].message.content)
             ai_response = AiAlert.from_dict(response)
             if ai_response.alert:
+                logger.info(f"AI detected an alert: {ai_response}")
                 message_bus.publish('ai_alert', ai_response)
         except Exception as e:
             logger.error(f"Error processing messages with AI: {e}")

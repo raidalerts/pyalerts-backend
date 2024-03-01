@@ -1,15 +1,16 @@
-import os
 from dataclasses import dataclass
 from typing import List
-import logging
 from datetime import datetime, timedelta
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import messaging
+from firebase_admin import firestore
 from message_bus import message_bus
 from ai_worker import AiAlert
+from config import Settings
+import app_logger
 
-logger = logging.getLogger(__name__)
+logger = app_logger.get(__name__)
 
 
 @dataclass
@@ -21,17 +22,17 @@ class FcmTokenRecord:
     @staticmethod
     def from_dict(data: dict):
         return FcmTokenRecord(
-            timestamp=datetime().utcfromtimestamp(data.get('timestamp')),
+            timestamp=datetime.utcfromtimestamp(data.get('timestamp') / 1000),
             token=data.get('token'),
             uid=data.get('uid')
         )
 
 
 class NotificationsSender:
-    def __init__(self):
-        cred = credentials.Certificate(os.getcwd() + '/account.json')
+    def __init__(self, settings: Settings):
+        cred = credentials.Certificate(settings.firebase_credentials_path)
         firebase_admin.initialize_app(cred)
-        self.db = firebase_admin.firestore.client()
+        self.db = firestore.client()
         self.token_deadline = timedelta(weeks=8)
 
     def start(self):
@@ -39,9 +40,12 @@ class NotificationsSender:
         logger.info("NotificationsSender started")
 
     def handle_ai_alert(self, alert: AiAlert):
-        tokens = self.fetch_notification_tokens()
-        self.send_push_notifications(tokens, alert)
-        logger.info(f"Push notifications sent to {len(tokens)} devices")
+        try:
+            tokens = self.fetch_notification_tokens()
+            self.send_push_notifications(tokens, alert)
+            logger.info(f"Push notifications sent to {len(tokens)} devices")
+        except Exception as e:
+            logger.error(f"Error sending push notifications: {e}")
 
     def fetch_notification_tokens(self):
         collection_ref = self.db.collection('fcm_tokens')
@@ -85,9 +89,8 @@ class NotificationsSender:
             )
 
             response = messaging.send_multicast(message)
-            if response.success_count > 0:
-                logger.info("Push notifications sent successfully")
-            else:
-                logger.error("Failed to send push notifications")
-                for error in response.errors:
-                    logger.error("Error sending push notification: {}".format(error))
+            if response.failure_count > 0:
+                logger.warning("Failed to send push notifications to some devices")
+                for idx, error in enumerate(response.responses):
+                    if 'error' in error:
+                        logger.warning(f"Error sending push notification to {batch_tokens[idx]}: {error['error']}")

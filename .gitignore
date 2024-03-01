@@ -81,9 +81,6 @@ doc/_build/
 *.md
 *.html
 *.xml
-*.json
-*.yaml
-*.yml
 
 !requirements.txt
 
@@ -92,3 +89,10 @@ doc/_build/
 
 # Settings files
 settings.yml
+
+# Google credentials
+account.json
+
+# Ansible inventory
+ansible/inventory
+ansible/roles/pyalerts-app/vars/*.yml

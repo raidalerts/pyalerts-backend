@@ -2,12 +2,12 @@ import threading
 import time
 from datetime import datetime, timezone
 from dataclasses import dataclass
-import logging
 from telegram import fetch_latest_messages
 from message_bus import message_bus
 from config import Settings
+import app_logger
 
-logger = logging.getLogger(__name__)
+logger = app_logger.get(__name__)
 
 
 @dataclass

@@ -1,0 +1,5 @@
+---
+- hosts: appserver
+  roles:
+    - common
+    - pyalerts-app
