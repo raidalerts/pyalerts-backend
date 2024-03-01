@@ -39,6 +39,7 @@
           volumes:
             - /etc/pyalerts/settings.yml:/etc/pyalerts/settings.yml:ro
             - /etc/pyalerts/account.json:/etc/pyalerts/account.json:ro
+          command: python3 src/main.py
   register: output
 - debug:
     var: output
