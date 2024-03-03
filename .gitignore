@@ -96,3 +96,5 @@ account.json
 # Ansible inventory
 ansible/inventory
 ansible/roles/pyalerts-app/vars/*.yml
+
+logs/

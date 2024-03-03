@@ -15,7 +15,7 @@ class Message:
     date: datetime
 
 
-def fetch_latest_messages(channel_name, limit=20, newer_than: datetime = None) -> List[Message]:
+def fetch_latest_messages(channel_name, limit=20, newer_than: datetime = None, stop_list: List[str] = []) -> List[Message]:
     url = f"https://t.me/s/{channel_name}"
     try:
         response = requests.get(url, timeout=5)
@@ -26,7 +26,8 @@ def fetch_latest_messages(channel_name, limit=20, newer_than: datetime = None) -
             author = channel_name
             text_node = message_div.css.select_one('.tgme_widget_message_bubble > .tgme_widget_message_text')
             if text_node:
-                text = text_node.get_text('\n', strip=True)
+                stripped_strings = text_node.stripped_strings
+                text = ' '.join([s for s in stripped_strings if s not in stop_list])
             else:
                 continue
             date_str = message_div.select_one(

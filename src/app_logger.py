@@ -1,4 +1,5 @@
 import logging
+from logging.handlers import TimedRotatingFileHandler
 
 logging.basicConfig(
     level=logging.WARNING,
@@ -7,6 +8,9 @@ logging.basicConfig(
 
 log_level = logging.INFO
 loggers = []
+log_rotation_handler = TimedRotatingFileHandler('/var/log/pyalerts/execution.log', when="midnight", interval=1, backupCount=10, encoding='utf-8')
+log_rotation_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s"))
+log_rotation_handler.setLevel(logging.DEBUG)
 
 
 def set_log_level(level):
@@ -21,4 +25,13 @@ def get(name):
     logger = logging.getLogger(name)
     logger.setLevel(log_level)
     loggers.append(logger)
+    return logger
+
+
+def get_persistent(name):
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+    for handler in logger.handlers:
+        logger.removeHandler(handler)
+    logger.addHandler(log_rotation_handler)
     return logger

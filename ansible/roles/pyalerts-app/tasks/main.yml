@@ -13,6 +13,11 @@
     path: /etc/pyalerts
     state: directory
     mode: '0755'
+- name: Create a logs dir
+  file:
+    path: /var/log/pyalerts
+    state: directory
+    mode: '0755'
 - name: Copy settings file to remote
   copy:
     src: settings.yml
@@ -39,6 +44,7 @@
           volumes:
             - /etc/pyalerts/settings.yml:/etc/pyalerts/settings.yml:ro
             - /etc/pyalerts/account.json:/etc/pyalerts/account.json:ro
+            - /var/log/pyalerts:/var/log/pyalerts
           command: python3 src/main.py
   register: output
 - debug:

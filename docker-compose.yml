@@ -9,4 +9,5 @@ services:
       - ./src:/app/src
       - ./settings.yml:/etc/pyalerts/settings.yml:ro
       - ./account.json:/etc/pyalerts/account.json:ro
+      - ./logs:/var/log/pyalerts
     command: python3 src/main.py

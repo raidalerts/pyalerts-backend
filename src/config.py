@@ -16,6 +16,7 @@ class Settings:
     webhooks: List['WebhookConfig']
     firebase_credentials_path: str
     log_level: str
+    stop_list: List[str]
 
 
 @dataclass
@@ -51,7 +52,8 @@ def parse_settings(config):
         analyzer_prompt=config.get('analyzer_prompt', ''),
         webhooks=[parse_webhook(webhook) for webhook in config.get('webhooks', [])],
         firebase_credentials_path=config.get('firebase_credentials_path', '/etc/pyalerts/account.json'),
-        log_level=config.get('log_level', 'INFO')
+        log_level=config.get('log_level', 'INFO'),
+        stop_list=config.get('stop_list', []),
     )
     return settings
 

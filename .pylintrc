@@ -1,5 +1,5 @@
 [MASTER]
-init-hook='import sys; sys.path.append(".")'
+init-hook='import sys; sys.path.append("./src")'
 
 [MESSAGES CONTROL]
 disable=missing-docstring,invalid-name,unused-import

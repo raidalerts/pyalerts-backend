@@ -13,6 +13,7 @@ class InfoMonitor:
     def __init__(self, settings: Settings):
         self.channel_names = settings.info_channels
         self.interval = settings.info_polling_interval
+        self.stop_list = settings.stop_list
         self.channel_last_fetched = {channel_name: None for channel_name in self.channel_names}
         self.sync_event = threading.Event()
 
@@ -37,7 +38,7 @@ class InfoMonitor:
             messages = []
             for channel_name in self.channel_names:
                 logger.debug(f'Fetching messages from {channel_name}')
-                channel_messages = fetch_latest_messages(channel_name, newer_than=self.channel_last_fetched[channel_name])
+                channel_messages = fetch_latest_messages(channel_name, newer_than=self.channel_last_fetched[channel_name], stop_list=self.stop_list)
                 self.channel_last_fetched[channel_name] = datetime.utcnow().replace(tzinfo=timezone.utc)
                 if len(channel_messages) > 0:
                     logger.info(f'Fetched {len(channel_messages)} messages from {channel_name}')
